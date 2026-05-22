@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="NextStepHub - Find Jobs, Scholarships and Volunteering opportunities worldwide"/>
+<title>NextStepHub - Find Your Next Opportunity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif;background:#f8fafc;color:#0f172a}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+a{text-decoration:none}
+input,select,textarea,button{font-family:inherit}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.fade-in{animation:fadeIn 0.4s ease forwards}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ── DATA ──────────────────────────────────────────────────────────────────
+const OPPS = [
+  {id:1,type:"job",title:"Software Engineer – Remote",org:"TechCorp Global",country:"United States",level:"Intermediate",tags:["React","Node.js","Remote"],description:"Join a fast-growing SaaS company building next-generation developer tools across 12 time zones.",requirements:"3+ years React & Node.js, strong communication skills.",deadline:"2025-08-31",salary:"$90k–$130k",logo:"💻",featured:true,days:2},
+  {id:2,type:"job",title:"Marketing Manager",org:"BrandWave Agency",country:"United Kingdom",level:"Professional",tags:["Marketing","SEO","Content"],description:"Lead integrated marketing campaigns for B2B clients across Europe.",requirements:"5+ years digital marketing, team leadership, data-driven mindset.",deadline:"2025-07-15",salary:"£55k–£70k",logo:"📣",featured:false,days:5},
+  {id:3,type:"job",title:"Data Analyst",org:"InsightLab",country:"Germany",level:"Beginner",tags:["Python","SQL","Tableau"],description:"Analyze large datasets to surface actionable business insights.",requirements:"BSc related field, SQL & Python basics, eagerness to learn.",deadline:"2025-09-01",salary:"€42k–€55k",logo:"📊",featured:false,days:1},
+  {id:4,type:"job",title:"UX/UI Designer",org:"PixelForge Studio",country:"Canada",level:"Intermediate",tags:["Figma","Prototyping","Design"],description:"Design beautiful product experiences for 500k+ users.",requirements:"3+ years UX/UI, portfolio required, Figma expert.",deadline:"2025-08-10",salary:"CAD 75k–95k",logo:"🎨",featured:true,days:3},
+  {id:5,type:"job",title:"Product Manager",org:"NovaTech",country:"Netherlands",level:"Professional",tags:["Product","Agile","B2B"],description:"Own the product roadmap for a B2B SaaS platform with 200k+ users.",requirements:"4+ years PM experience, technical background preferred.",deadline:"2025-09-20",salary:"€80k–€100k",logo:"🧭",featured:false,days:0},
+  {id:6,type:"job",title:"DevOps Engineer",org:"CloudNest",country:"Australia",level:"Intermediate",tags:["AWS","Docker","CI/CD"],description:"Build and maintain scalable cloud infrastructure for a fintech startup.",requirements:"3+ years DevOps, AWS certified preferred, Kubernetes.",deadline:"2025-08-25",salary:"AUD 110k–140k",logo:"⚙️",featured:false,days:4},
+  {id:7,type:"scholarship",title:"Erasmus+ Full Scholarship",org:"European Commission",country:"France",level:"Intermediate",tags:["Masters","Europe","Fully Funded"],description:"Study at top European universities with full tuition, stipend, travel allowance and housing.",requirements:"Bachelor's degree, B2 language proficiency, under 35 years old.",deadline:"2026-01-15",salary:"€1,200/month",logo:"🇪🇺",featured:true,days:0},
+  {id:8,type:"scholarship",title:"Chevening Scholarship",org:"UK Foreign Office",country:"United Kingdom",level:"Professional",tags:["Masters","Fully Funded","Leadership"],description:"The UK government's global scholarship for future leaders. Full tuition, living costs, flights.",requirements:"2 years work experience, leadership potential, IELTS 6.5+.",deadline:"2025-11-02",salary:"Full Cover",logo:"🎓",featured:false,days:4},
+  {id:9,type:"scholarship",title:"MEXT Japan Scholarship",org:"Japanese Government",country:"Japan",level:"Beginner",tags:["Undergrad","Masters","Fully Funded"],description:"Full tuition, monthly allowance, round-trip airfare and cultural support for international students.",requirements:"Age 17–34, strong academic record, basic Japanese or English.",deadline:"2025-12-10",salary:"¥117,000/mo",logo:"🗾",featured:false,days:7},
+  {id:10,type:"scholarship",title:"Gates Cambridge Scholarship",org:"Gates Foundation",country:"United Kingdom",level:"Professional",tags:["PhD","Masters","Prestigious"],description:"One of the most prestigious scholarships globally. Full funding for outstanding students.",requirements:"Exceptional academic record, commitment to social impact, Cambridge acceptance.",deadline:"2025-10-15",salary:"Full + £17,500",logo:"🏛️",featured:true,days:0},
+  {id:11,type:"scholarship",title:"Fulbright Scholar Program",org:"U.S. Department of State",country:"United States",level:"Professional",tags:["PhD","Research","Fully Funded"],description:"Prestigious program for researchers and professionals to lecture and conduct research abroad.",requirements:"PhD or equivalent, U.S. citizenship, strong research proposal.",deadline:"2025-09-15",salary:"Full Cover + $3,000",logo:"🦅",featured:true,days:1},
+  {id:12,type:"scholarship",title:"DAAD Scholarship – Germany",org:"DAAD",country:"Germany",level:"Intermediate",tags:["Masters","PhD","Research"],description:"Fund your studies or research in Germany with one of the world's largest scholarship programs.",requirements:"Bachelor's degree, strong GPA, language proficiency (German/English).",deadline:"2025-11-30",salary:"€934/month",logo:"🇩🇪",featured:false,days:3},
+  {id:13,type:"volunteering",title:"Marine Conservation Volunteer",org:"Ocean Guardian Network",country:"Australia",level:"Beginner",tags:["Environment","Marine","Conservation"],description:"Protect coral reefs in the Great Barrier Reef. Full training provided. Direct impact on ocean health.",requirements:"Basic swimming, 4-week minimum, 18+ years.",deadline:null,salary:"Free Housing",logo:"🐠",featured:true,days:1},
+  {id:14,type:"volunteering",title:"Education Program Volunteer",org:"Teach The World",country:"Kenya",level:"Intermediate",tags:["Education","Teaching","Africa"],description:"Teach English, STEM or arts to children in rural communities across Kenya.",requirements:"Bachelor's degree or equivalent, 3-month minimum, teaching passion.",deadline:null,salary:"Meals + Housing",logo:"📚",featured:false,days:6},
+  {id:15,type:"volunteering",title:"Community Health Worker",org:"MedCare International",country:"India",level:"Intermediate",tags:["Health","Medical","Community"],description:"Support primary healthcare delivery in underserved communities alongside local nurses and doctors.",requirements:"Healthcare background or student, 6-week min, vaccinations required.",deadline:"2025-10-01",salary:"Stipend",logo:"🏥",featured:false,days:3},
+  {id:16,type:"volunteering",title:"Tech for Good – Developer",org:"Code Without Borders",country:"Brazil",level:"Professional",tags:["Tech","Development","NGO"],description:"Build digital tools for NGOs. Create impactful software powering social change across Latin America.",requirements:"2+ years dev experience, 2-month remote or in-person.",deadline:"2025-08-30",salary:"Remote Option",logo:"💡",featured:true,days:2},
+  {id:17,type:"volunteering",title:"Wildlife Rescue Volunteer",org:"Savanna Wildlife Trust",country:"South Africa",level:"Beginner",tags:["Wildlife","Conservation","Africa"],description:"Care for injured and orphaned wildlife. Release animals back into the wild.",requirements:"18+, 3-week minimum, love of animals, no experience required.",deadline:null,salary:"Housing Provided",logo:"🦁",featured:false,days:0},
+  {id:18,type:"volunteering",title:"Environmental Educator",org:"GreenFuture NGO",country:"Costa Rica",level:"Beginner",tags:["Education","Environment","Rainforest"],description:"Educate communities about rainforest conservation in one of the world's most biodiverse regions.",requirements:"Environmental background helpful, Spanish basics, 6-week min.",deadline:null,salary:"Accommodation",logo:"🌿",featured:false,days:2},
+];
+
+const TCFG = {
+  job:         {label:"Jobs",        icon:"💼",color:"#2563eb",light:"#eff6ff",border:"#bfdbfe"},
+  scholarship: {label:"Scholarships",icon:"🎓",color:"#7c3aed",light:"#f5f3ff",border:"#ddd6fe"},
+  volunteering:{label:"Volunteering",icon:"🌍",color:"#059669",light:"#ecfdf5",border:"#a7f3d0"},
+};
+const COUNTRIES=["All Countries","United States","United Kingdom","Germany","France","Canada","Australia","Japan","Kenya","India","Brazil","Netherlands","South Africa","Costa Rica"];
+const LEVELS=["All Levels","Beginner","Intermediate","Professional"];
+
+// ── BADGE ─────────────────────────────────────────────────────────────────
+function Badge({type,sm}){
+  const c=TCFG[type];
+  return React.createElement("span",{style:{display:"inline-flex",alignItems:"center",gap:4,background:c.light,color:c.color,border:`1px solid ${c.border}`,borderRadius:20,padding:sm?"2px 8px":"3px 11px",fontSize:sm?11:12,fontWeight:700}},c.icon+" "+c.label);
+}
+function LvlBadge({level}){
+  const m={Beginner:["#dcfce7","#16a34a"],Intermediate:["#fef9c3","#ca8a04"],Professional:["#fee2e2","#dc2626"]};
+  const [bg,c]=m[level]||["#f1f5f9","#64748b"];
+  return React.createElement("span",{style:{background:bg,color:c,borderRadius:20,padding:"2px 9px",fontSize:11,fontWeight:700}},level);
+}
+
+// ── CARD ─────────────────────────────────────────────────────────────────
+function Card({opp,onApply}){
+  const [hov,setHov]=useState(false);
+  const c=TCFG[opp.type];
+  return React.createElement("div",{
+    onMouseEnter:()=>setHov(true),onMouseLeave:()=>setHov(false),
+    style:{background:"#fff",borderRadius:16,border:`1.5px solid ${hov?c.color:"#e8ecf0"}`,padding:"18px 20px",
+      transition:"all 0.2s",position:"relative",overflow:"hidden",
+      boxShadow:hov?`0 8px 32px ${c.color}25`:"0 2px 8px rgba(0,0,0,0.05)",
+      transform:hov?"translateY(-2px)":"none"}},
+    opp.featured&&React.createElement("div",{style:{position:"absolute",top:0,right:16,background:"linear-gradient(135deg,#f59e0b,#ef4444)",
+      color:"#fff",fontSize:9,fontWeight:800,padding:"2px 10px",borderRadius:"0 0 7px 7px"}},"★ FEATURED"),
+    React.createElement("div",{style:{display:"flex",gap:12,alignItems:"flex-start"}},
+      React.createElement("div",{style:{width:46,height:46,borderRadius:12,background:c.light,display:"flex",
+        alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0,border:`1.5px solid ${c.border}`}},opp.logo),
+      React.createElement("div",{style:{flex:1,minWidth:0}},
+        React.createElement("div",{style:{display:"flex",gap:5,flexWrap:"wrap",marginBottom:5}},
+          React.createElement(Badge,{type:opp.type,sm:true}),
+          React.createElement(LvlBadge,{level:opp.level})
+        ),
+        React.createElement("h3",{style:{margin:0,fontSize:14,fontWeight:800,color:"#0f172a",lineHeight:1.3,marginBottom:2}},opp.title),
+        React.createElement("p",{style:{margin:0,fontSize:12,color:"#64748b",marginBottom:7}},opp.org+" · 🌐 "+opp.country),
+        React.createElement("p",{style:{margin:0,fontSize:13,color:"#475569",lineHeight:1.5,marginBottom:9,
+          overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}},opp.description),
+        React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:4,marginBottom:10}},
+          opp.tags.map(t=>React.createElement("span",{key:t,style:{background:"#f1f5f9",color:"#475569",borderRadius:6,padding:"2px 7px",fontSize:11,fontWeight:500}},t))
+        ),
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:6}},
+          React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
+            opp.salary&&React.createElement("span",{style:{fontSize:12,color:"#16a34a",fontWeight:700}},"💰 "+opp.salary),
+            opp.deadline&&React.createElement("span",{style:{fontSize:11,color:"#dc2626",fontWeight:600}},"⏰ "+opp.deadline),
+            React.createElement("span",{style:{fontSize:11,color:"#94a3b8"}},opp.days===0?"Today":opp.days+"d ago")
+          ),
+          React.createElement("button",{onClick:()=>onApply(opp),style:{background:hov?c.color:"transparent",color:hov?"#fff":c.color,
+            border:`1.5px solid ${c.color}`,borderRadius:8,padding:"6px 14px",fontSize:12,fontWeight:700,cursor:"pointer",transition:"all 0.2s"}},"Apply →")
+        )
+      )
+    )
+  );
+}
+
+// ── MODAL ────────────────────────────────────────────────────────────────
+function Modal({opp,onClose}){
+  if(!opp)return null;
+  const c=TCFG[opp.type];
+  return React.createElement("div",{onClick:onClose,style:{position:"fixed",inset:0,background:"rgba(15,23,42,0.8)",
+    display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:16,backdropFilter:"blur(6px)"}},
+    React.createElement("div",{onClick:e=>e.stopPropagation(),style:{background:"#fff",borderRadius:20,padding:24,
+      maxWidth:520,width:"100%",maxHeight:"90vh",overflowY:"auto",boxShadow:"0 24px 80px rgba(0,0,0,0.3)"}},
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:16}},
+        React.createElement(Badge,{type:opp.type}),
+        React.createElement("button",{onClick:onClose,style:{background:"#f1f5f9",border:"none",borderRadius:8,width:32,height:32,cursor:"pointer",fontSize:15}},"✕")
+      ),
+      React.createElement("div",{style:{display:"flex",gap:12,marginBottom:16}},
+        React.createElement("div",{style:{width:54,height:54,borderRadius:14,background:c.light,display:"flex",
+          alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0,border:`1.5px solid ${c.border}`}},opp.logo),
+        React.createElement("div",null,
+          React.createElement("h2",{style:{margin:0,fontSize:19,fontWeight:800,color:"#0f172a"}},opp.title),
+          React.createElement("p",{style:{margin:"4px 0 0",color:"#64748b",fontSize:13}},opp.org+" · "+opp.country)
+        )
+      ),
+      opp.salary&&React.createElement("div",{style:{display:"flex",gap:10,marginBottom:14,flexWrap:"wrap"}},
+        React.createElement("span",{style:{background:"#f0fdf4",color:"#16a34a",borderRadius:8,padding:"6px 12px",fontSize:13,fontWeight:700}},"💰 "+opp.salary),
+        opp.deadline&&React.createElement("span",{style:{background:"#fef2f2",color:"#dc2626",borderRadius:8,padding:"6px 12px",fontSize:13,fontWeight:700}},"⏰ "+opp.deadline),
+        React.createElement(LvlBadge,{level:opp.level})
+      ),
+      React.createElement("div",{style:{marginBottom:12}},
+        React.createElement("div",{style:{fontSize:12,fontWeight:700,color:"#475569",marginBottom:5}},"📝 Description"),
+        React.createElement("p",{style:{margin:0,fontSize:13,color:"#334155",lineHeight:1.65,background:"#f8fafc",borderRadius:10,padding:"10px 12px"}},opp.description)
+      ),
+      React.createElement("div",{style:{marginBottom:16}},
+        React.createElement("div",{style:{fontSize:12,fontWeight:700,color:"#475569",marginBottom:5}},"✅ Requirements"),
+        React.createElement("p",{style:{margin:0,fontSize:13,color:"#334155",lineHeight:1.65,background:"#f8fafc",borderRadius:10,padding:"10px 12px"}},opp.requirements)
+      ),
+      React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginBottom:18}},
+        opp.tags.map(t=>React.createElement("span",{key:t,style:{background:c.light,color:c.color,border:`1px solid ${c.border}`,borderRadius:7,padding:"3px 10px",fontSize:12,fontWeight:600}},t))
+      ),
+      React.createElement("div",{style:{display:"flex",gap:10}},
+        React.createElement("a",{href:"#",style:{background:c.color,color:"#fff",borderRadius:10,padding:"12px 22px",fontWeight:700,fontSize:14,display:"inline-block"}},"🚀 Apply Now"),
+        React.createElement("button",{onClick:onClose,style:{background:"#f1f5f9",color:"#475569",border:"none",borderRadius:10,padding:"12px 18px",fontWeight:600,fontSize:14,cursor:"pointer"}},"Close")
+      )
+    )
+  );
+}
+
+// ── HOME ─────────────────────────────────────────────────────────────────
+function Home({nav,opps,onApply}){
+  const [search,setSearch]=useState("");
+  const [word,setWord]=useState(0);
+  const words=["Opportunity","Scholarship","Dream Job","Adventure","Future"];
+  const counts={job:opps.filter(o=>o.type==="job").length,scholarship:opps.filter(o=>o.type==="scholarship").length,volunteering:opps.filter(o=>o.type==="volunteering").length};
+  useEffect(()=>{const t=setInterval(()=>setWord(w=>(w+1)%words.length),2500);return()=>clearInterval(t);},[]);
+  const featured=opps.filter(o=>o.featured);
+  const latest=[...opps].sort((a,b)=>a.days-b.days).slice(0,6);
+  const TESTIMONIALS=[
+    {name:"Aisha Mohamed",from:"Nigeria → France",av:"👩🏾",text:"NextStepHub helped me find the Erasmus+ scholarship. I'm now studying in Paris!",type:"scholarship"},
+    {name:"Carlos Rivera",from:"Colombia → Canada",av:"👨🏽",text:"I landed my UX Designer role in Toronto through this platform. Amazing filters!",type:"job"},
+    {name:"Priya Sharma",from:"India → Australia",av:"👩🏽",text:"The Marine Conservation program changed my life. 6 weeks at the Great Barrier Reef!",type:"volunteering"},
+    {name:"James Okafor",from:"Ghana → UK",av:"👨🏿",text:"Got the Chevening Scholarship on my first try! The AI advisor was key.",type:"scholarship"},
+  ];
+  return React.createElement("div",null,
+    // HERO
+    React.createElement("section",{style:{background:"linear-gradient(150deg,#0a0e1a 0%,#0d1a3d 55%,#1a2f6e 100%)",
+      padding:"70px 20px 90px",textAlign:"center",position:"relative",overflow:"hidden"}},
+      React.createElement("div",{style:{position:"absolute",inset:0,pointerEvents:"none",overflow:"hidden"}},
+        React.createElement("div",{style:{position:"absolute",top:"10%",left:"5%",width:300,height:300,borderRadius:"50%",background:"radial-gradient(circle,rgba(99,102,241,0.15) 0%,transparent 70%)"}}),
+        React.createElement("div",{style:{position:"absolute",bottom:"10%",right:"5%",width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,rgba(16,185,129,0.1) 0%,transparent 70%)"}})
+      ),
+      React.createElement("div",{style:{position:"relative",maxWidth:780,margin:"0 auto"}},
+        React.createElement("div",{style:{display:"inline-flex",alignItems:"center",gap:7,background:"rgba(255,255,255,0.08)",
+          border:"1px solid rgba(255,255,255,0.15)",borderRadius:20,padding:"5px 16px",fontSize:12,color:"#93c5fd",marginBottom:22}},
+          "🌍 "+opps.length+"+ global opportunities — updated daily"
+        ),
+        React.createElement("h1",{style:{fontSize:"clamp(28px,6vw,54px)",fontWeight:900,color:"#fff",margin:"0 0 12px",lineHeight:1.1,letterSpacing:-1}},
+          "Find Your Next",React.createElement("br"),
+          React.createElement("span",{style:{background:"linear-gradient(90deg,#60a5fa,#a78bfa,#34d399)",
+            WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text",transition:"all 0.4s"}},
+            words[word]
+          )
+        ),
+        React.createElement("p",{style:{fontSize:16,color:"#94a3b8",margin:"0 auto 36px",lineHeight:1.65,maxWidth:520}},
+          "Jobs · Scholarships · Volunteering — all in one place."
+        ),
+        React.createElement("div",{style:{display:"flex",background:"#fff",borderRadius:14,overflow:"hidden",
+          boxShadow:"0 8px 40px rgba(0,0,0,0.3)",maxWidth:640,margin:"0 auto"}},
+          React.createElement("span",{style:{padding:"0 14px",display:"flex",alignItems:"center",fontSize:16,color:"#94a3b8"}},"🔍"),
+          React.createElement("input",{value:search,onChange:e=>setSearch(e.target.value),
+            onKeyDown:e=>e.key==="Enter"&&nav("listings",{search}),
+            placeholder:"Search jobs, scholarships, countries...",
+            style:{flex:1,border:"none",outline:"none",fontSize:14,padding:"14px 0",color:"#0f172a",background:"transparent"}}),
+          React.createElement("button",{onClick:()=>nav("listings",{search}),
+            style:{background:"linear-gradient(135deg,#2563eb,#1d4ed8)",color:"#fff",border:"none",
+              padding:"12px 22px",cursor:"pointer",fontSize:13,fontWeight:800,margin:4,borderRadius:10}},"Search")
+        ),
+        React.createElement("div",{style:{marginTop:16,display:"flex",justifyContent:"center",gap:7,flexWrap:"wrap"}},
+          React.createElement("span",{style:{fontSize:12,color:"#64748b"}},"Popular:"),
+          ["Erasmus+","Remote Jobs","Africa Volunteering","MEXT Japan"].map(k=>
+            React.createElement("button",{key:k,onClick:()=>nav("listings",{search:k}),
+              style:{background:"rgba(255,255,255,0.08)",color:"#93c5fd",border:"1px solid rgba(255,255,255,0.15)",
+                borderRadius:15,padding:"3px 11px",fontSize:11,cursor:"pointer"}},k)
+          )
+        ),
+        React.createElement("div",{style:{display:"flex",justifyContent:"center",gap:28,marginTop:40,flexWrap:"wrap"}},
+          [["🌐","42,000+","Opportunities"],["🗺️","180+","Countries"],["👥","320k+","Users"],["🏆","94%","Success"]].map(([ic,n,l])=>
+            React.createElement("div",{key:l,style:{textAlign:"center"}},
+              React.createElement("div",{style:{fontSize:20}},ic),
+              React.createElement("div",{style:{fontSize:20,fontWeight:900,color:"#fff",lineHeight:1}},n),
+              React.createElement("div",{style:{fontSize:11,color:"#64748b",marginTop:2}},l)
+            )
+          )
+        )
+      )
+    ),
+
+    // CATEGORIES
+    React.createElement("section",{style:{padding:"60px 20px 48px",background:"#f8fafc"}},
+      React.createElement("div",{style:{maxWidth:1060,margin:"0 auto"}},
+        React.createElement("div",{style:{textAlign:"center",marginBottom:38}},
+          React.createElement("span",{style:{background:"#eff6ff",color:"#2563eb",borderRadius:20,padding:"4px 14px",fontSize:11,fontWeight:700}},"BROWSE BY CATEGORY"),
+          React.createElement("h2",{style:{fontSize:26,fontWeight:900,color:"#0f172a",margin:"10px 0 7px"}},"What Are You Looking For?"),
+          React.createElement("p",{style:{color:"#64748b",fontSize:14}},"Thousands of opportunities across every field, level, and country.")
+        ),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:20}},
+          Object.entries(TCFG).map(([type,cfg])=>
+            React.createElement("div",{key:type,onClick:()=>nav("listings",{type}),
+              style:{background:"#fff",borderRadius:20,padding:"30px 24px",border:`2px solid ${cfg.border}`,
+                cursor:"pointer",transition:"all 0.25s",textAlign:"center",boxShadow:"0 2px 12px rgba(0,0,0,0.05)"},
+              onMouseEnter:e=>{e.currentTarget.style.background=cfg.light;e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow=`0 14px 44px ${cfg.color}22`;},
+              onMouseLeave:e=>{e.currentTarget.style.background="#fff";e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="0 2px 12px rgba(0,0,0,0.05)";}},
+              React.createElement("div",{style:{fontSize:46,marginBottom:12}},cfg.icon),
+              React.createElement("h3",{style:{fontSize:21,fontWeight:800,color:"#0f172a",margin:"0 0 9px"}},cfg.label),
+              React.createElement("p",{style:{color:"#64748b",margin:"0 0 16px",fontSize:13,lineHeight:1.6}},
+                type==="job"?"Full-time, part-time & remote positions globally.":type==="scholarship"?"Fully funded grants, study abroad & research programs.":"Make real impact. Gain experience. Change the world."
+              ),
+              React.createElement("div",{style:{display:"inline-flex",alignItems:"center",gap:6,background:cfg.light,color:cfg.color,
+                border:`1.5px solid ${cfg.border}`,borderRadius:20,padding:"7px 16px",fontSize:13,fontWeight:800}},
+                counts[type]+" opportunities →"
+              )
+            )
+          )
+        )
+      )
+    ),
+
+    // FEATURED
+    React.createElement("section",{style:{padding:"52px 20px",background:"#fff"}},
+      React.createElement("div",{style:{maxWidth:1060,margin:"0 auto"}},
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:26}},
+          React.createElement("div",null,
+            React.createElement("h2",{style:{fontSize:22,fontWeight:900,color:"#0f172a",margin:0}},"⭐ Featured Opportunities"),
+            React.createElement("p",{style:{color:"#64748b",margin:"4px 0 0",fontSize:13}},"Curated picks from our editorial team")
+          ),
+          React.createElement("button",{onClick:()=>nav("listings"),style:{background:"transparent",color:"#2563eb",
+            border:"1.5px solid #2563eb",borderRadius:9,padding:"8px 16px",cursor:"pointer",fontWeight:700,fontSize:12}},"View All →")
+        ),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:18}},
+          featured.slice(0,3).map(o=>React.createElement(Card,{key:o.id,opp:o,onApply}))
+        )
+      )
+    ),
+
+    // LATEST
+    React.createElement("section",{style:{padding:"48px 20px",background:"#f8fafc"}},
+      React.createElement("div",{style:{maxWidth:1060,margin:"0 auto"}},
+        React.createElement("h2",{style:{fontSize:22,fontWeight:900,color:"#0f172a",margin:"0 0 6px"}},"🆕 Latest Additions"),
+        React.createElement("p",{style:{color:"#64748b",margin:"0 0 24px",fontSize:13}},"Added in the last 7 days"),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:18}},
+          latest.map(o=>React.createElement(Card,{key:o.id,opp:o,onApply}))
+        ),
+        React.createElement("div",{style:{textAlign:"center",marginTop:28}},
+          React.createElement("button",{onClick:()=>nav("listings"),style:{background:"linear-gradient(135deg,#2563eb,#1d4ed8)",
+            color:"#fff",border:"none",borderRadius:12,padding:"13px 32px",fontSize:14,fontWeight:800,
+            cursor:"pointer",boxShadow:"0 6px 20px rgba(37,99,235,0.35)"}},
+            "Browse All "+opps.length+" Opportunities →"
+          )
+        )
+      )
+    ),
+
+    // HOW IT WORKS
+    React.createElement("section",{style:{padding:"60px 20px",background:"#fff"}},
+      React.createElement("div",{style:{maxWidth:900,margin:"0 auto"}},
+        React.createElement("div",{style:{textAlign:"center",marginBottom:40}},
+          React.createElement("span",{style:{background:"#f0fdf4",color:"#059669",borderRadius:20,padding:"4px 14px",fontSize:11,fontWeight:700}},"HOW IT WORKS"),
+          React.createElement("h2",{style:{fontSize:26,fontWeight:900,color:"#0f172a",margin:"10px 0 0"}},"Your Path in 3 Steps")
+        ),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:28}},
+          [{step:"01",icon:"🔍",title:"Search & Filter",desc:"Use powerful search and filters to find opportunities matching your skills, country, level and goals."},
+           {step:"02",icon:"🤖",title:"AI Guidance",desc:"Chat with our AI advisor. Tell it about yourself and get personalized step-by-step recommendations."},
+           {step:"03",icon:"🚀",title:"Apply & Succeed",desc:"Click Apply Now to go directly to the official application. Land your next big opportunity."}
+          ].map(s=>React.createElement("div",{key:s.step,style:{textAlign:"center",padding:20}},
+            React.createElement("div",{style:{width:56,height:56,borderRadius:15,background:"linear-gradient(135deg,#eff6ff,#dbeafe)",
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,margin:"0 auto 14px",border:"1.5px solid #bfdbfe"}},s.icon),
+            React.createElement("div",{style:{fontSize:11,fontWeight:800,color:"#2563eb",letterSpacing:1,marginBottom:7}},"STEP "+s.step),
+            React.createElement("h3",{style:{fontSize:16,fontWeight:800,color:"#0f172a",margin:"0 0 9px"}},s.title),
+            React.createElement("p",{style:{color:"#64748b",fontSize:13,lineHeight:1.65,margin:0}},s.desc)
+          ))
+        )
+      )
+    ),
+
+    // TESTIMONIALS
+    React.createElement("section",{style:{padding:"60px 20px",background:"linear-gradient(135deg,#0f172a,#1e3a8a)"}},
+      React.createElement("div",{style:{maxWidth:1060,margin:"0 auto"}},
+        React.createElement("div",{style:{textAlign:"center",marginBottom:36}},
+          React.createElement("h2",{style:{fontSize:26,fontWeight:900,color:"#fff",margin:0}},"Success Stories 🌟"),
+          React.createElement("p",{style:{color:"#94a3b8",marginTop:6}},"Real people. Real opportunities. Real change.")
+        ),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(230px,1fr))",gap:18}},
+          TESTIMONIALS.map(t=>React.createElement("div",{key:t.name,style:{background:"rgba(255,255,255,0.06)",
+            border:"1px solid rgba(255,255,255,0.1)",borderRadius:16,padding:22}},
+            React.createElement("div",{style:{fontSize:26,marginBottom:4}},t.av),
+            React.createElement("div",{style:{marginBottom:10}},React.createElement(Badge,{type:t.type,sm:true})),
+            React.createElement("p",{style:{color:"#cbd5e1",fontSize:13,lineHeight:1.65,margin:"0 0 14px",fontStyle:"italic"}},'"'+t.text+'"'),
+            React.createElement("div",{style:{fontWeight:700,color:"#fff",fontSize:13}},t.name),
+            React.createElement("div",{style:{color:"#64748b",fontSize:11}},t.from)
+          ))
+        )
+      )
+    ),
+
+    // AI CTA
+    React.createElement("section",{style:{padding:"64px 20px",textAlign:"center",background:"linear-gradient(135deg,#1e1b4b,#312e81,#1e3a8a)"}},
+      React.createElement("div",{style:{maxWidth:580,margin:"0 auto"}},
+        React.createElement("div",{style:{width:64,height:64,borderRadius:18,background:"rgba(255,255,255,0.1)",
+          display:"flex",alignItems:"center",justifyContent:"center",fontSize:32,margin:"0 auto 18px",
+          border:"1px solid rgba(255,255,255,0.2)"}},"🤖"),
+        React.createElement("h2",{style:{fontSize:26,fontWeight:900,color:"#fff",margin:"0 0 12px"}},"Not Sure Where to Start?"),
+        React.createElement("p",{style:{color:"#a5b4fc",fontSize:15,marginBottom:26,lineHeight:1.65}},
+          "Our AI Advisor analyzes your profile and gives you personalized recommendations with a step-by-step application guide."
+        ),
+        React.createElement("button",{onClick:()=>nav("ai"),style:{background:"linear-gradient(135deg,#818cf8,#6366f1,#4f46e5)",
+          color:"#fff",border:"none",borderRadius:13,padding:"14px 30px",fontSize:15,fontWeight:800,
+          cursor:"pointer",boxShadow:"0 10px 40px rgba(99,102,241,0.5)"}},"Chat with AI Advisor →")
+      )
+    ),
+
+    // NEWSLETTER
+    React.createElement("section",{style:{padding:"56px 20px",background:"#eff6ff"}},
+      React.createElement("div",{style:{maxWidth:500,margin:"0 auto",textAlign:"center"}},
+        React.createElement("div",{style:{fontSize:38,marginBottom:10}},"📬"),
+        React.createElement("h3",{style:{fontSize:22,fontWeight:900,color:"#0f172a",margin:"0 0 8px"}},"Weekly Opportunities Digest"),
+        React.createElement("p",{style:{color:"#64748b",marginBottom:22,fontSize:13,lineHeight:1.65}},
+          "Get the best jobs, scholarships and volunteering programs every Monday. 18,000+ subscribers."
+        ),
+        React.createElement("div",{style:{display:"flex",gap:8,maxWidth:400,margin:"0 auto"}},
+          React.createElement("input",{placeholder:"your@email.com",style:{flex:1,border:"1.5px solid #bfdbfe",
+            borderRadius:10,padding:"11px 14px",fontSize:13,outline:"none",color:"#0f172a"}}),
+          React.createElement("button",{style:{background:"linear-gradient(135deg,#2563eb,#1d4ed8)",color:"#fff",
+            border:"none",borderRadius:10,padding:"11px 18px",cursor:"pointer",fontWeight:800,fontSize:13}},"Subscribe")
+        ),
+        React.createElement("p",{style:{fontSize:11,color:"#94a3b8",marginTop:7}},"📩 No spam. Free forever.")
+      )
+    )
+  );
+}
+
+// ── LISTINGS ─────────────────────────────────────────────────────────────
+function Listings({init={},opps,onApply}){
+  const [search,setSearch]=useState(init.search||"");
+  const [type,setType]=useState(init.type||"all");
+  const [country,setCountry]=useState("All Countries");
+  const [level,setLevel]=useState("All Levels");
+  const [sort,setSort]=useState("newest");
+
+  const filtered=opps.filter(o=>{
+    const mt=type==="all"||o.type===type;
+    const ms=!search||[o.title,o.org,o.country,...o.tags].join(" ").toLowerCase().includes(search.toLowerCase());
+    const mc=country==="All Countries"||o.country===country;
+    const ml=level==="All Levels"||o.level===level;
+    return mt&&ms&&mc&&ml;
+  }).sort((a,b)=>sort==="newest"?a.days-b.days:(a.deadline||"9999")<(b.deadline||"9999")?-1:1);
+
+  const selStyle={border:"1.5px solid #e2e8f0",borderRadius:9,padding:"9px 11px",
+    fontSize:13,color:"#0f172a",background:"#fff",cursor:"pointer",outline:"none"};
+
+  return React.createElement("div",{style:{minHeight:"80vh",background:"#f8fafc"}},
+    React.createElement("div",{style:{background:"#fff",borderBottom:"1px solid #e2e8f0",padding:"20px 20px 0"}},
+      React.createElement("div",{style:{maxWidth:1060,margin:"0 auto"}},
+        React.createElement("h1",{style:{fontSize:24,fontWeight:900,color:"#0f172a",margin:"0 0 16px"}},"Browse Opportunities"),
+        React.createElement("div",{style:{display:"flex",gap:3,flexWrap:"wrap"}},
+          ["all","job","scholarship","volunteering"].map(t=>{
+            const active=type===t;
+            const cfg=t!=="all"?TCFG[t]:null;
+            return React.createElement("button",{key:t,onClick:()=>setType(t),
+              style:{padding:"9px 18px",borderRadius:"8px 8px 0 0",border:"none",cursor:"pointer",
+                fontWeight:700,fontSize:12,transition:"all 0.15s",
+                background:active?(cfg?cfg.color:"#2563eb"):"transparent",
+                color:active?"#fff":"#64748b",
+                borderBottom:active?"3px solid "+(cfg?cfg.color:"#2563eb"):"3px solid transparent"}},
+              t==="all"?"🌐 All":`${cfg.icon} ${cfg.label}`,
+              React.createElement("span",{style:{marginLeft:5,opacity:0.75,fontSize:11}},
+                "("+( t==="all"?opps.length:opps.filter(o=>o.type===t).length)+")"
+              )
+            );
+          })
+        )
+      )
+    ),
+    React.createElement("div",{style:{maxWidth:1060,margin:"0 auto",padding:"20px"}},
+      React.createElement("div",{style:{display:"flex",gap:9,flexWrap:"wrap",marginBottom:20,background:"#fff",
+        padding:"13px 14px",borderRadius:13,border:"1px solid #e2e8f0",alignItems:"center"}},
+        React.createElement("input",{value:search,onChange:e=>setSearch(e.target.value),
+          placeholder:"🔍 Search keyword, skill, country...",
+          style:{flex:"1 1 160px",border:"1.5px solid #e2e8f0",borderRadius:9,padding:"9px 13px",
+            fontSize:13,outline:"none",color:"#0f172a",minWidth:100}}),
+        React.createElement("select",{value:country,onChange:e=>setCountry(e.target.value),style:selStyle},
+          COUNTRIES.map(c=>React.createElement("option",{key:c},c))
+        ),
+        React.createElement("select",{value:level,onChange:e=>setLevel(e.target.value),style:selStyle},
+          LEVELS.map(l=>React.createElement("option",{key:l},l))
+        ),
+        React.createElement("select",{value:sort,onChange:e=>setSort(e.target.value),style:selStyle},
+          React.createElement("option",{value:"newest"},"Newest First"),
+          React.createElement("option",{value:"deadline"},"Deadline Soon")
+        ),
+        React.createElement("div",{style:{fontSize:12,color:"#64748b",fontWeight:600,marginLeft:"auto",whiteSpace:"nowrap"}},filtered.length+" results")
+      ),
+      filtered.length===0
+        ?React.createElement("div",{style:{textAlign:"center",padding:70,color:"#94a3b8"}},
+            React.createElement("div",{style:{fontSize:48}},"🔍"),
+            React.createElement("div",{style:{fontSize:17,fontWeight:700,marginTop:12}},"No opportunities found"),
+            React.createElement("div",{style:{fontSize:13,marginTop:5}},"Try adjusting your filters")
+          )
+        :React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:18}},
+            filtered.map(o=>React.createElement(Card,{key:o.id,opp:o,onApply}))
+          )
+    )
+  );
+}
+
+// ── AI PAGE ───────────────────────────────────────────────────────────────
+function AI({opps}){
+  const [msgs,setMsgs]=useState([{role:"assistant",content:"👋 **Hello! I'm your NextStepHub AI Advisor.**\n\nTell me about yourself — your age, background, goals, and preferred country — and I'll give you personalized recommendations with a step-by-step application guide!\n\n**Example:** *\"I'm 22, finished engineering, want to study in Europe.\"*"}]);
+  const [inp,setInp]=useState("");
+  const [loading,setLoading]=useState(false);
+  const [err,setErr]=useState(null);
+  const endRef=useRef(null);
+  useEffect(()=>{endRef.current?.scrollIntoView({behavior:"smooth"});},[msgs]);
+
+  const ctx=opps.map(o=>`[${o.type.toUpperCase()}] "${o.title}" | ${o.org} | ${o.country} | ${o.level} | Deadline:${o.deadline||"Rolling"} | Tags:${o.tags.join(",")}`).join("\n");
+
+  async function send(){
+    const t=inp.trim();
+    if(!t||loading)return;
+    setInp("");setErr(null);
+    const newMsgs=[...msgs,{role:"user",content:t}];
+    setMsgs(newMsgs);setLoading(true);
+    const sys=`You are NextStepHub's AI Advisor. Be warm, specific, actionable.\n\nPlatform opportunities:\n${ctx}\n\nFormat responses with:\n**🎯 Top Picks For You** (2-3 specific opportunity names + why they match)\n**📋 Step-by-Step: [Best Match]** (numbered steps)\n**💡 Pro Tips** (3 tips)\n\nReference real opportunity names from the list. Use markdown.`;
+    try{
+      const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:sys,
+          messages:newMsgs.map(m=>({role:m.role,content:m.content}))})});
+      const data=await res.json();
+      const reply=data.content?.[0]?.text||"Sorry, couldn't generate a response.";
+      setMsgs(p=>[...p,{role:"assistant",content:reply}]);
+    }catch(e){setErr("Connection error. Please try again.");}
+    finally{setLoading(false);}
+  }
+
+  function renderMd(text){
+    return text.split("\n").map((line,i)=>{
+      if(line.startsWith("**")&&line.endsWith("**"))
+        return React.createElement("div",{key:i,style:{fontWeight:800,color:"#0f172a",marginTop:10,marginBottom:3,fontSize:14}},line.slice(2,-2));
+      const parts=line.split(/(\*\*[^*]+\*\*)/g).map((p,j)=>
+        p.startsWith("**")?React.createElement("strong",{key:j,style:{fontWeight:700}},p.slice(2,-2)):p);
+      return React.createElement("div",{key:i,style:{lineHeight:1.65,fontSize:14}},parts);
+    });
+  }
+
+  const suggestions=["I'm 20 and want to study in France","Looking for volunteering in Africa","Software engineer seeking remote jobs","Recent grad, want fully-funded scholarship"];
+
+  return React.createElement("div",{style:{minHeight:"80vh",background:"linear-gradient(160deg,#f8fafc,#eff6ff)",padding:"36px 20px"}},
+    React.createElement("div",{style:{maxWidth:740,margin:"0 auto"}},
+      React.createElement("div",{style:{textAlign:"center",marginBottom:26}},
+        React.createElement("div",{style:{width:60,height:60,borderRadius:16,background:"linear-gradient(135deg,#4f46e5,#7c3aed)",
+          display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,margin:"0 auto 12px",
+          boxShadow:"0 8px 28px rgba(79,70,229,0.35)"}},"🤖"),
+        React.createElement("h1",{style:{fontSize:24,fontWeight:900,color:"#0f172a",margin:0}},"AI Opportunity Advisor"),
+        React.createElement("p",{style:{color:"#64748b",marginTop:6,fontSize:14}},"Powered by Claude AI · Personalized guidance in seconds")
+      ),
+      React.createElement("div",{style:{background:"#fff",borderRadius:20,border:"1.5px solid #e2e8f0",boxShadow:"0 8px 40px rgba(0,0,0,0.09)",overflow:"hidden"}},
+        React.createElement("div",{style:{background:"linear-gradient(135deg,#1e3a8a,#4f46e5)",padding:"13px 18px",display:"flex",alignItems:"center",gap:10}},
+          React.createElement("div",{style:{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.18)",
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}},"🤖"),
+          React.createElement("div",null,
+            React.createElement("div",{style:{color:"#fff",fontWeight:800,fontSize:14}},"NextStepHub AI"),
+            React.createElement("div",{style:{color:"#93c5fd",fontSize:11}},"● Online · "+opps.length+" opportunities loaded")
+          )
+        ),
+        React.createElement("div",{style:{height:400,overflowY:"auto",padding:18,display:"flex",flexDirection:"column",gap:12}},
+          msgs.map((m,i)=>React.createElement("div",{key:i,style:{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",gap:7}},
+            m.role==="assistant"&&React.createElement("div",{style:{width:28,height:28,borderRadius:"50%",background:"#eff6ff",
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0,alignSelf:"flex-end",border:"1px solid #bfdbfe"}},"🤖"),
+            React.createElement("div",{style:{maxWidth:"82%",borderRadius:m.role==="user"?"18px 18px 4px 18px":"18px 18px 18px 4px",
+              padding:"11px 14px",background:m.role==="user"?"linear-gradient(135deg,#2563eb,#1d4ed8)":"#f1f5f9",
+              color:m.role==="user"?"#fff":"#0f172a"}},
+              m.role==="assistant"?renderMd(m.content):React.createElement("span",{style:{fontSize:14}},m.content)
+            )
+          )),
+          loading&&React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center"}},
+            React.createElement("div",{style:{width:28,height:28,borderRadius:"50%",background:"#eff6ff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,border:"1px solid #bfdbfe"}},"🤖"),
+            React.createElement("div",{style:{background:"#f1f5f9",borderRadius:"18px 18px 18px 4px",padding:"11px 14px",display:"flex",gap:5}},
+              [0,1,2].map(j=>React.createElement("div",{key:j,style:{width:6,height:6,borderRadius:"50%",background:"#94a3b8",
+                animation:`bounce 1.2s infinite`,animationDelay:`${j*0.2}s`}}))
+            )
+          ),
+          err&&React.createElement("div",{style:{color:"#dc2626",fontSize:13,textAlign:"center"}},err),
+          React.createElement("div",{ref:endRef})
+        ),
+        msgs.length<=1&&React.createElement("div",{style:{padding:"0 16px 12px",display:"flex",gap:6,flexWrap:"wrap"}},
+          suggestions.map(s=>React.createElement("button",{key:s,onClick:()=>setInp(s),
+            style:{background:"#eff6ff",color:"#2563eb",border:"1.5px solid #bfdbfe",borderRadius:20,
+              padding:"4px 12px",fontSize:11,cursor:"pointer",fontWeight:600}},s))
+        ),
+        React.createElement("div",{style:{padding:"11px 14px",borderTop:"1px solid #f1f5f9",display:"flex",gap:9,alignItems:"flex-end"}},
+          React.createElement("textarea",{value:inp,onChange:e=>setInp(e.target.value),
+            onKeyDown:e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}},
+            placeholder:"Tell me about yourself... (Enter to send)",rows:2,
+            style:{flex:1,border:"1.5px solid #e2e8f0",borderRadius:11,padding:"10px 13px",
+              fontSize:13,resize:"none",outline:"none",color:"#0f172a",lineHeight:1.5,fontFamily:"inherit"}}),
+          React.createElement("button",{onClick:send,disabled:loading||!inp.trim(),
+            style:{background:loading||!inp.trim()?"#e2e8f0":"linear-gradient(135deg,#2563eb,#1d4ed8)",
+              color:loading||!inp.trim()?"#94a3b8":"#fff",border:"none",borderRadius:11,
+              padding:"11px 18px",cursor:loading||!inp.trim()?"not-allowed":"pointer",fontWeight:800,fontSize:13}},"Send ↑")
+        )
+      )
+    )
+  );
+}
+
+// ── ADMIN ────────────────────────────────────────────────────────────────
+function Admin({opps,setOpps}){
+  const [view,setView]=useState("dashboard");
+  const [pin,setPin]=useState("");
+  const [authed,setAuthed]=useState(false);
+  const [editing,setEditing]=useState(null);
+  const empty={title:"",type:"job",org:"",country:"United States",level:"Intermediate",
+    tags:"",description:"",requirements:"",deadline:"",salary:"",logo:"💼",featured:false};
+  const [form,setForm]=useState(empty);
+
+  if(!authed) return React.createElement("div",{style:{minHeight:"80vh",background:"#f8fafc",display:"flex",alignItems:"center",justifyContent:"center"}},
+    React.createElement("div",{style:{background:"#fff",borderRadius:20,padding:36,maxWidth:340,width:"100%",boxShadow:"0 12px 50px rgba(0,0,0,0.12)",textAlign:"center"}},
+      React.createElement("div",{style:{fontSize:38,marginBottom:12}},"🔐"),
+      React.createElement("h2",{style:{fontSize:21,fontWeight:900,color:"#0f172a",margin:"0 0 5px"}},"Admin Panel"),
+      React.createElement("p",{style:{color:"#64748b",fontSize:13,marginBottom:20}},"Enter PIN to continue (Demo: 1234)"),
+      React.createElement("input",{type:"password",value:pin,onChange:e=>setPin(e.target.value),
+        onKeyDown:e=>e.key==="Enter"&&(pin==="1234"?setAuthed(true):alert("Wrong PIN")),
+        placeholder:"••••",style:{width:"100%",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"12px",
+          fontSize:20,outline:"none",textAlign:"center",marginBottom:12,letterSpacing:6,boxSizing:"border-box"}}),
+      React.createElement("button",{onClick:()=>pin==="1234"?setAuthed(true):alert("Wrong PIN"),
+        style:{width:"100%",background:"linear-gradient(135deg,#2563eb,#1d4ed8)",color:"#fff",border:"none",
+          borderRadius:10,padding:13,fontSize:14,fontWeight:800,cursor:"pointer"}},"Enter Admin")
+    )
+  );
+
+  const stats={total:opps.length,jobs:opps.filter(o=>o.type==="job").length,
+    sch:opps.filter(o=>o.type==="scholarship").length,vol:opps.filter(o=>o.type==="volunteering").length,
+    featured:opps.filter(o=>o.featured).length};
+
+  function save(){
+    if(!form.title||!form.org) return alert("Title and Organization required.");
+    const tags=form.tags.split(",").map(t=>t.trim()).filter(Boolean);
+    if(editing) setOpps(p=>p.map(o=>o.id===editing?{...form,id:editing,tags,days:0}:o));
+    else setOpps(p=>[...p,{...form,id:Date.now(),tags,days:0}]);
+    setForm(empty);setEditing(null);setView("list");
+  }
+  function del(id){if(window.confirm("Delete?"))setOpps(p=>p.filter(o=>o.id!==id));}
+  function edit(o){setForm({...o,tags:o.tags.join(", ")});setEditing(o.id);setView("form");}
+
+  const inp={width:"100%",border:"1.5px solid #e2e8f0",borderRadius:8,padding:"9px 11px",fontSize:13,outline:"none",color:"#0f172a",boxSizing:"border-box",fontFamily:"inherit"};
+
+  return React.createElement("div",{style:{minHeight:"80vh",background:"#f8fafc",padding:"24px 20px"}},
+    React.createElement("div",{style:{maxWidth:1060,margin:"0 auto"}},
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:22,flexWrap:"wrap",gap:10}},
+        React.createElement("div",null,
+          React.createElement("h1",{style:{fontSize:22,fontWeight:900,color:"#0f172a",margin:0}},"⚙️ Admin Dashboard"),
+          React.createElement("p",{style:{color:"#64748b",margin:"3px 0 0",fontSize:12}},"Manage all opportunities")
+        ),
+        React.createElement("div",{style:{display:"flex",gap:7}},
+          ["dashboard","list","form"].map(v=>React.createElement("button",{key:v,onClick:()=>{setView(v);if(v!=="form"){setForm(empty);setEditing(null);}},
+            style:{background:view===v?"#2563eb":"#fff",color:view===v?"#fff":"#475569",
+              border:`1.5px solid ${view===v?"#2563eb":"#e2e8f0"}`,borderRadius:8,
+              padding:"7px 14px",cursor:"pointer",fontWeight:700,fontSize:12}},
+            v==="dashboard"?"📊 Stats":v==="list"?"📋 All":"➕ Add"
+          ))
+        )
+      ),
+      view==="dashboard"&&React.createElement("div",null,
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:14,marginBottom:20}},
+          [["Total","🌐",stats.total,"#2563eb"],["Jobs","💼",stats.jobs,"#2563eb"],
+           ["Scholarships","🎓",stats.sch,"#7c3aed"],["Volunteering","🌍",stats.vol,"#059669"],
+           ["Featured","⭐",stats.featured,"#f59e0b"]].map(([l,ic,v,c])=>
+            React.createElement("div",{key:l,style:{background:"#fff",borderRadius:13,padding:"16px 18px",
+              border:"1.5px solid #e8ecf0",boxShadow:"0 2px 8px rgba(0,0,0,0.05)"}},
+              React.createElement("div",{style:{fontSize:20,marginBottom:5}},ic),
+              React.createElement("div",{style:{fontSize:26,fontWeight:900,color:c}},v),
+              React.createElement("div",{style:{fontSize:12,color:"#64748b",fontWeight:600}},l)
+            )
+          )
+        )
+      ),
+      view==="list"&&React.createElement("div",{style:{background:"#fff",borderRadius:14,border:"1px solid #e2e8f0",overflowX:"auto"}},
+        React.createElement("table",{style:{width:"100%",borderCollapse:"collapse",minWidth:520}},
+          React.createElement("thead",null,React.createElement("tr",{style:{background:"#f8fafc"}},
+            ["Title","Type","Country","Level","Actions"].map(h=>React.createElement("th",{key:h,style:{padding:"11px 14px",textAlign:"left",fontSize:11,fontWeight:800,color:"#64748b",borderBottom:"1px solid #f1f5f9"}},h))
+          )),
+          React.createElement("tbody",null,
+            opps.map((o,i)=>React.createElement("tr",{key:o.id,style:{borderBottom:"1px solid #f8fafc",background:i%2===0?"#fff":"#fafbfc"}},
+              React.createElement("td",{style:{padding:"11px 14px"}},
+                React.createElement("div",{style:{fontWeight:700,fontSize:13,color:"#0f172a"}},o.logo+" "+o.title),
+                React.createElement("div",{style:{fontSize:11,color:"#94a3b8"}},o.org)
+              ),
+              React.createElement("td",{style:{padding:"11px 14px"}},React.createElement(Badge,{type:o.type,sm:true})),
+              React.createElement("td",{style:{padding:"11px 14px",fontSize:12,color:"#475569"}},o.country),
+              React.createElement("td",{style:{padding:"11px 14px"}},React.createElement(LvlBadge,{level:o.level})),
+              React.createElement("td",{style:{padding:"11px 14px"}},
+                React.createElement("div",{style:{display:"flex",gap:6}},
+                  React.createElement("button",{onClick:()=>edit(o),style:{background:"#eff6ff",color:"#2563eb",border:"none",borderRadius:6,padding:"5px 11px",cursor:"pointer",fontSize:11,fontWeight:700}},"Edit"),
+                  React.createElement("button",{onClick:()=>del(o.id),style:{background:"#fef2f2",color:"#dc2626",border:"none",borderRadius:6,padding:"5px 11px",cursor:"pointer",fontSize:11,fontWeight:700}},"Delete")
+                )
+              )
+            ))
+          )
+        )
+      ),
+      view==="form"&&React.createElement("div",{style:{background:"#fff",borderRadius:16,border:"1px solid #e2e8f0",padding:26}},
+        React.createElement("h2",{style:{fontSize:17,fontWeight:900,color:"#0f172a",margin:"0 0 20px"}},editing?"✏️ Edit":"➕ Add New Opportunity"),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:14}},
+          [["title","Title *","text"],["org","Organization *","text"],["salary","Salary/Benefit","text"],["logo","Emoji","text"],["deadline","Deadline","date"]].map(([k,l,t])=>
+            React.createElement("div",{key:k},
+              React.createElement("label",{style:{fontSize:12,fontWeight:700,color:"#475569",marginBottom:4,display:"block"}},l),
+              React.createElement("input",{type:t,value:form[k],onChange:e=>setForm(f=>({...f,[k]:e.target.value})),style:inp})
+            )
+          ),
+          [["type","Type",["job","scholarship","volunteering"]],
+           ["country","Country",COUNTRIES.slice(1)],
+           ["level","Level",["Beginner","Intermediate","Professional"]]].map(([k,l,opts])=>
+            React.createElement("div",{key:k},
+              React.createElement("label",{style:{fontSize:12,fontWeight:700,color:"#475569",marginBottom:4,display:"block"}},l),
+              React.createElement("select",{value:form[k],onChange:e=>setForm(f=>({...f,[k]:e.target.value})),style:inp},
+                opts.map(o=>React.createElement("option",{key:o},o))
+              )
+            )
+          )
+        ),
+        React.createElement("div",{style:{marginTop:13}},
+          React.createElement("label",{style:{fontSize:12,fontWeight:700,color:"#475569",marginBottom:4,display:"block"}},"Tags (comma-separated)"),
+          React.createElement("input",{value:form.tags,onChange:e=>setForm(f=>({...f,tags:e.target.value})),placeholder:"React, Remote, Fulltime",style:inp})
+        ),
+        React.createElement("div",{style:{marginTop:12}},
+          React.createElement("label",{style:{fontSize:12,fontWeight:700,color:"#475569",marginBottom:4,display:"block"}},"Description *"),
+          React.createElement("textarea",{value:form.description,onChange:e=>setForm(f=>({...f,description:e.target.value})),rows:3,style:{...inp,resize:"vertical"}})
+        ),
+        React.createElement("div",{style:{marginTop:12}},
+          React.createElement("label",{style:{fontSize:12,fontWeight:700,color:"#475569",marginBottom:4,display:"block"}},"Requirements"),
+          React.createElement("textarea",{value:form.requirements,onChange:e=>setForm(f=>({...f,requirements:e.target.value})),rows:2,style:{...inp,resize:"vertical"}})
+        ),
+        React.createElement("div",{style:{marginTop:12,display:"flex",alignItems:"center",gap:8}},
+          React.createElement("input",{type:"checkbox",id:"feat",checked:form.featured,onChange:e=>setForm(f=>({...f,featured:e.target.checked}))}),
+          React.createElement("label",{htmlFor:"feat",style:{fontSize:13,fontWeight:700,color:"#0f172a",cursor:"pointer"}},"⭐ Featured")
+        ),
+        React.createElement("div",{style:{marginTop:20,display:"flex",gap:10}},
+          React.createElement("button",{onClick:save,style:{background:"linear-gradient(135deg,#2563eb,#1d4ed8)",color:"#fff",
+            border:"none",borderRadius:10,padding:"11px 24px",fontWeight:800,fontSize:13,cursor:"pointer"}},editing?"💾 Save":"✅ Add"),
+          React.createElement("button",{onClick:()=>{setView("list");setForm(empty);setEditing(null);},
+            style:{background:"transparent",color:"#64748b",border:"1.5px solid #e2e8f0",
+              borderRadius:10,padding:"11px 18px",fontWeight:600,fontSize:13,cursor:"pointer"}},"Cancel")
+        )
+      )
+    )
+  );
+}
+
+// ── APP ───────────────────────────────────────────────────────────────────
+function App(){
+  const [page,setPage]=useState("home");
+  const [pageProps,setPageProps]=useState({});
+  const [opps,setOpps]=useState(OPPS);
+  const [modal,setModal]=useState(null);
+  const [menuOpen,setMenuOpen]=useState(false);
+
+  function nav(p,props={}){
+    setPage(p);setPageProps(props);setMenuOpen(false);
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+
+  const navLinks=[
+    {id:"home",label:"Home"},
+    {id:"listings",label:"Opportunities"},
+    {id:"ai",label:"🤖 AI Advisor"},
+    {id:"admin",label:"Admin"},
+  ];
+
+  return React.createElement("div",{style:{fontFamily:"'Plus Jakarta Sans','Segoe UI',sans-serif",minHeight:"100vh",background:"#f8fafc"}},
+    // HEADER
+    React.createElement("header",{style:{background:"rgba(255,255,255,0.97)",backdropFilter:"blur(12px)",
+      borderBottom:"1px solid #e2e8f0",position:"sticky",top:0,zIndex:200,boxShadow:"0 1px 14px rgba(0,0,0,0.07)"}},
+      React.createElement("div",{style:{maxWidth:1060,margin:"0 auto",padding:"0 18px",display:"flex",alignItems:"center",height:60}},
+        React.createElement("button",{onClick:()=>nav("home"),style:{background:"none",border:"none",cursor:"pointer",
+          display:"flex",alignItems:"center",gap:9,padding:0}},
+          React.createElement("div",{style:{width:34,height:34,borderRadius:9,background:"linear-gradient(135deg,#2563eb,#7c3aed)",
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}},"🚀"),
+          React.createElement("span",{style:{fontSize:16,fontWeight:900,color:"#0f172a",letterSpacing:-0.5}},
+            "Next",React.createElement("span",{style:{color:"#2563eb"}},"Step"),"Hub"
+          )
+        ),
+        // desktop nav
+        React.createElement("nav",{style:{display:"flex",gap:2,marginLeft:"auto",alignItems:"center"}},
+          navLinks.map(n=>React.createElement("button",{key:n.id,onClick:()=>nav(n.id),
+            style:{background:page===n.id?"#eff6ff":"transparent",color:page===n.id?"#2563eb":"#475569",
+              border:"none",borderRadius:8,padding:"7px 12px",cursor:"pointer",
+              fontWeight:page===n.id?800:600,fontSize:12,transition:"all 0.15s",whiteSpace:"nowrap"}},n.label)
+          ),
+          React.createElement("button",{onClick:()=>nav("admin"),style:{background:"linear-gradient(135deg,#2563eb,#1d4ed8)",
+            color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",
+            fontWeight:800,fontSize:12,marginLeft:8,whiteSpace:"nowrap",
+            boxShadow:"0 3px 12px rgba(37,99,235,0.35)"}},"Post Opportunity")
+        )
+      )
+    ),
+
+    // PAGES
+    page==="home"&&React.createElement(Home,{nav,opps,onApply:setModal}),
+    page==="listings"&&React.createElement(Listings,{init:pageProps,opps,onApply:setModal}),
+    page==="ai"&&React.createElement(AI,{opps}),
+    page==="admin"&&React.createElement(Admin,{opps,setOpps}),
+
+    // FOOTER
+    React.createElement("footer",{style:{background:"#0a0e1a",padding:"48px 20px 28px"}},
+      React.createElement("div",{style:{maxWidth:1060,margin:"0 auto"}},
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:28,marginBottom:36}},
+          React.createElement("div",null,
+            React.createElement("div",{style:{fontSize:16,fontWeight:900,color:"#fff",marginBottom:12}},
+              "🚀 Next",React.createElement("span",{style:{color:"#60a5fa"}},"Step"),"Hub"
+            ),
+            React.createElement("p",{style:{color:"#475569",fontSize:12,lineHeight:1.7}},"The world's fastest growing platform for jobs, scholarships & volunteering."),
+            React.createElement("div",{style:{marginTop:12,fontSize:12,color:"#64748b"}},
+              opps.length+" opportunities · 180+ countries"
+            )
+          ),
+          React.createElement("div",null,
+            React.createElement("div",{style:{fontSize:11,fontWeight:800,color:"#fff",marginBottom:14,letterSpacing:0.8}},"OPPORTUNITIES"),
+            ["Browse Jobs","Scholarships","Volunteering","Featured"].map(l=>
+              React.createElement("div",{key:l,style:{marginBottom:8}},
+                React.createElement("a",{href:"#",onClick:e=>{e.preventDefault();nav("listings");},
+                  style:{color:"#475569",fontSize:12}},l)
+              )
+            )
+          ),
+          React.createElement("div",null,
+            React.createElement("div",{style:{fontSize:11,fontWeight:800,color:"#fff",marginBottom:14,letterSpacing:0.8}},"PLATFORM"),
+            ["AI Advisor","Admin Panel","Newsletter"].map(l=>
+              React.createElement("div",{key:l,style:{marginBottom:8}},
+                React.createElement("a",{href:"#",style:{color:"#475569",fontSize:12}},l)
+              )
+            )
+          )
+        ),
+        React.createElement("div",{style:{borderTop:"1px solid rgba(255,255,255,0.06)",paddingTop:20,
+          display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:10}},
+          React.createElement("div",{style:{color:"#334155",fontSize:11}},"© 2025 NextStepHub. All rights reserved."),
+          React.createElement("div",{style:{color:"#475569",fontSize:11}},"Built for global opportunity seekers 🌍")
+        )
+      )
+    ),
+
+    React.createElement(Modal,{opp:modal,onClose:()=>setModal(null)})
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+</script>
+</body>
+</html>
